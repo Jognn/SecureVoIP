@@ -15,21 +15,35 @@
  *
  */
 
-var ws = new WebSocket('wss://' + location.host + '/call');
-var videoInput;
-var videoOutput;
-var webRtcPeer;
-var response;
-var callerMessage;
-var from;
+let ws = new WebSocket('wss://' + location.host + '/call');
+let videoInput;
+let videoOutput;
+let webRtcPeer;
+let response;
+let callerMessage;
+let from;
 
-var registerName = null;
-var registerState = null;
+let registerName = null;
+let registerState = null;
 const NOT_REGISTERED = 0;
 const REGISTERING = 1;
 const REGISTERED = 2;
 
-function setRegisterState(nextState) {
+window.onload = function() {
+	console = new Console();
+	setRegisterState(NOT_REGISTERED);
+	let drag = new Draggabilly(document.getElementById('videoSmall'));
+	videoInput = document.getElementById('videoInput');
+	videoOutput = document.getElementById('videoOutput');
+	document.getElementById('name').focus();
+}
+
+window.onbeforeunload = function() {
+	ws.close();
+}
+
+function setRegisterState(nextState)
+{
 	switch (nextState) {
 	case NOT_REGISTERED:
 		enableButton('#register', 'register()');
@@ -48,12 +62,13 @@ function setRegisterState(nextState) {
 	registerState = nextState;
 }
 
-var callState = null;
+let callState = null;
 const NO_CALL = 0;
 const PROCESSING_CALL = 1;
 const IN_CALL = 2;
 
-function setCallState(nextState) {
+function setCallState(nextState)
+{
 	switch (nextState) {
 	case NO_CALL:
 		enableButton('#call', 'call()');
@@ -76,21 +91,9 @@ function setCallState(nextState) {
 	callState = nextState;
 }
 
-window.onload = function() {
-	console = new Console();
-	setRegisterState(NOT_REGISTERED);
-	var drag = new Draggabilly(document.getElementById('videoSmall'));
-	videoInput = document.getElementById('videoInput');
-	videoOutput = document.getElementById('videoOutput');
-	document.getElementById('name').focus();
-}
-
-window.onbeforeunload = function() {
-	ws.close();
-}
-
-ws.onmessage = function(message) {
-	var parsedMessage = JSON.parse(message.data);
+ws.onmessage = function(message)
+{
+	let parsedMessage = JSON.parse(message.data);
 	console.info('Received message: ' + message.data);
 
 	switch (parsedMessage.id) {
@@ -121,22 +124,24 @@ ws.onmessage = function(message) {
 	}
 }
 
-function registerResponse(message) {
+function registerResponse(message)
+{
 	if (message.response == 'accepted') {
 		setRegisterState(REGISTERED);
 	} else {
 		setRegisterState(NOT_REGISTERED);
-		var errorMessage = message.message ? message.message
+		let errorMessage = message.message ? message.message
 				: 'Unknown reason for register rejection.';
 		console.log(errorMessage);
 		alert('Error registering user. See console for further information.');
 	}
 }
 
-function callResponse(message) {
+function callResponse(message)
+{
 	if (message.response != 'accepted') {
 		console.info('Call not accepted by peer. Closing call');
-		var errorMessage = message.message ? message.message
+		let errorMessage = message.message ? message.message
 				: 'Unknown reason for call rejection.';
 		console.log(errorMessage);
 		stop();
@@ -150,6 +155,7 @@ function callResponse(message) {
 }
 
 function startCommunication(message) {
+
 	setCallState(IN_CALL);
 	webRtcPeer.processAnswer(message.sdpAnswer, function(error) {
 		if (error)
@@ -157,10 +163,11 @@ function startCommunication(message) {
 	});
 }
 
-function incomingCall(message) {
+function incomingCall(message)
+{
 	// If bussy just reject without disturbing user
 	if (callState != NO_CALL) {
-		var response = {
+		let response = {
 			id : 'incomingCallResponse',
 			from : message.from,
 			callResponse : 'reject',
@@ -175,7 +182,7 @@ function incomingCall(message) {
 		showSpinner(videoInput, videoOutput);
 
 		from = message.from;
-		var options = {
+		let options = {
 			localVideo : videoInput,
 			remoteVideo : videoOutput,
 			onicecandidate : onIceCandidate,
@@ -189,8 +196,10 @@ function incomingCall(message) {
 					webRtcPeer.generateOffer(onOfferIncomingCall);
 				});
 
-	} else {
-		var response = {
+	}
+	else
+	{
+		let response = {
 			id : 'incomingCallResponse',
 			from : message.from,
 			callResponse : 'reject',
@@ -204,7 +213,7 @@ function incomingCall(message) {
 function onOfferIncomingCall(error, offerSdp) {
 	if (error)
 		return console.error("Error generating the offer");
-	var response = {
+	let response = {
 		id : 'incomingCallResponse',
 		from : from,
 		callResponse : 'accept',
@@ -213,15 +222,16 @@ function onOfferIncomingCall(error, offerSdp) {
 	sendMessage(response);
 }
 
-function register() {
-	var name = document.getElementById('name').value;
+function register()
+{
+	let name = document.getElementById('name').value;
 	if (name == '') {
 		window.alert('You must insert your user name');
 		return;
 	}
 	setRegisterState(REGISTERING);
 
-	var message = {
+	let message = {
 		id : 'register',
 		name : name
 	};
@@ -237,7 +247,7 @@ function call() {
 	setCallState(PROCESSING_CALL);
 	showSpinner(videoInput, videoOutput);
 
-	var options = {
+	let options = {
 		localVideo : videoInput,
 		remoteVideo : videoOutput,
 		onicecandidate : onIceCandidate,
@@ -256,7 +266,7 @@ function onOfferCall(error, offerSdp) {
 	if (error)
 		return console.error('Error generating the offer');
 	console.log('Invoking SDP offer callback function');
-	var message = {
+	let message = {
 		id : 'call',
 		from : document.getElementById('name').value,
 		to : document.getElementById('peer').value,
@@ -272,7 +282,7 @@ function stop(message) {
 		webRtcPeer = null;
 
 		if (!message) {
-			var message = {
+			let message = {
 				id : 'stop'
 			}
 			sendMessage(message);
@@ -288,7 +298,7 @@ function onError() {
 function onIceCandidate(candidate) {
 	console.log("Local candidate" + JSON.stringify(candidate));
 
-	var message = {
+	let message = {
 		id : 'onIceCandidate',
 		candidate : candidate
 	};
@@ -296,20 +306,20 @@ function onIceCandidate(candidate) {
 }
 
 function sendMessage(message) {
-	var jsonMessage = JSON.stringify(message);
+	let jsonMessage = JSON.stringify(message);
 	console.log('Sending message: ' + jsonMessage);
 	ws.send(jsonMessage);
 }
 
 function showSpinner() {
-	for (var i = 0; i < arguments.length; i++) {
+	for (let i = 0; i < arguments.length; i++) {
 		arguments[i].poster = './img/transparent-1px.png';
 		arguments[i].style.background = 'center transparent url("./img/spinner.gif") no-repeat';
 	}
 }
 
 function hideSpinner() {
-	for (var i = 0; i < arguments.length; i++) {
+	for (let i = 0; i < arguments.length; i++) {
 		arguments[i].src = '';
 		arguments[i].poster = './img/webrtc.png';
 		arguments[i].style.background = '';

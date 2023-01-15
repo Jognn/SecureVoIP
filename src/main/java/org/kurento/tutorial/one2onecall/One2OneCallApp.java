@@ -35,36 +35,43 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
  */
 @SpringBootApplication
 @EnableWebSocket
-public class One2OneCallApp implements WebSocketConfigurer {
+public class One2OneCallApp implements WebSocketConfigurer
+{
 
-  @Bean
-  public CallHandler callHandler() {
-    return new CallHandler();
-  }
+    @Bean
+    public CallHandler callHandler()
+    {
+        return new CallHandler();
+    }
 
-  @Bean
-  public UserRegistry registry() {
-    return new UserRegistry();
-  }
+    @Bean
+    public UserRegistry registry()
+    {
+        return new UserRegistry();
+    }
 
-  @Bean
-  public KurentoClient kurentoClient() {
-    return KurentoClient.create();
-  }
+    @Bean
+    public KurentoClient kurentoClient()
+    {
+        return KurentoClient.create();
+    }
 
-  @Bean
-  public ServletServerContainerFactoryBean createServletServerContainerFactoryBean() {
-    ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
-    container.setMaxTextMessageBufferSize(32768);
-    return container;
-  }
+    @Bean
+    public ServletServerContainerFactoryBean createServletServerContainerFactoryBean()
+    {
+        final ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
+        container.setMaxTextMessageBufferSize(32768);
+        return container;
+    }
 
-  @Override
-  public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    registry.addHandler(callHandler(), "/call");
-  }
+    @Override
+    public void registerWebSocketHandlers(final WebSocketHandlerRegistry registry)
+    {
+        registry.addHandler(callHandler(), "/call");
+    }
 
-  public static void main(String[] args) throws Exception {
-    SpringApplication.run(One2OneCallApp.class, args);
-  }
+    public static void main(final String[] args)
+    {
+        SpringApplication.run(One2OneCallApp.class, args);
+    }
 }
