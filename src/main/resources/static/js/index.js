@@ -15,13 +15,14 @@
  *
  */
 
-let ws = new WebSocket('wss://' + location.host + '/call');
+const ws = new WebSocket('wss://' + location.host + '/call');
 let videoInput;
 let videoOutput;
 let webRtcPeer;
 let response;
 let callerMessage;
 let from;
+let hasWebcam;
 
 let registerName = null;
 let registerState = null;
@@ -36,6 +37,7 @@ window.onload = function() {
 	videoInput = document.getElementById('videoInput');
 	videoOutput = document.getElementById('videoOutput');
 	document.getElementById('name').focus();
+	navigator.getUserMedia({video:true, audio:false}, () => hasWebcam = true, () => hasWebcam = false);
 }
 
 window.onbeforeunload = function() {
@@ -139,6 +141,7 @@ function registerResponse(message)
 
 function callResponse(message)
 {
+	hideSpinner(videoInput, videoOutput)
 	if (message.response != 'accepted') {
 		console.info('Call not accepted by peer. Closing call');
 		let errorMessage = message.message ? message.message
@@ -155,6 +158,7 @@ function callResponse(message)
 }
 
 function startCommunication(message) {
+	hideSpinner(videoOutput)
 
 	setCallState(IN_CALL);
 	webRtcPeer.processAnswer(message.sdpAnswer, function(error) {
@@ -179,15 +183,22 @@ function incomingCall(message)
 	setCallState(PROCESSING_CALL);
 	if (confirm('User ' + message.from
 			+ ' is calling you. Do you accept the call?')) {
-		showSpinner(videoInput, videoOutput);
+		//showSpinner(videoInput, videoOutput);
 
 		from = message.from;
-		let options = {
+
+		const options = {
 			localVideo : videoInput,
 			remoteVideo : videoOutput,
+			mediaConstraints: 
+			{  
+				audio:true,  
+				video:message.isVideoCall  
+			},
 			onicecandidate : onIceCandidate,
 			onerror : onError
 		}
+
 		webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options,
 				function(error) {
 					if (error) {
@@ -195,11 +206,10 @@ function incomingCall(message)
 					}
 					webRtcPeer.generateOffer(onOfferIncomingCall);
 				});
-
 	}
 	else
 	{
-		let response = {
+		const response = {
 			id : 'incomingCallResponse',
 			from : message.from,
 			callResponse : 'reject',
@@ -208,6 +218,7 @@ function incomingCall(message)
 		sendMessage(response);
 		stop();
 	}
+	hideSpinner(videoInput);
 }
 
 function onOfferIncomingCall(error, offerSdp) {
@@ -217,7 +228,7 @@ function onOfferIncomingCall(error, offerSdp) {
 		id : 'incomingCallResponse',
 		from : from,
 		callResponse : 'accept',
-		sdpOffer : offerSdp
+		sdpOffer : offerSdp,
 	};
 	sendMessage(response);
 }
@@ -231,7 +242,7 @@ function register()
 	}
 	setRegisterState(REGISTERING);
 
-	let message = {
+	const message = {
 		id : 'register',
 		name : name
 	};
@@ -250,9 +261,15 @@ function call() {
 	let options = {
 		localVideo : videoInput,
 		remoteVideo : videoOutput,
+		mediaConstraints: 
+		{  
+			audio:true,  
+			video:hasWebcam  
+		},
 		onicecandidate : onIceCandidate,
 		onerror : onError
 	}
+
 	webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options,
 			function(error) {
 				if (error) {
@@ -264,13 +281,16 @@ function call() {
 
 function onOfferCall(error, offerSdp) {
 	if (error)
-		return console.error('Error generating the offer');
+		return console.error('Error generating the offer ', error);
+	
+	console.log(`SDP OFFER =`, offerSdp)
 	console.log('Invoking SDP offer callback function');
 	let message = {
 		id : 'call',
 		from : document.getElementById('name').value,
 		to : document.getElementById('peer').value,
-		sdpOffer : offerSdp
+		sdpOffer : offerSdp,
+		isVideoCall : hasWebcam
 	};
 	sendMessage(message);
 }

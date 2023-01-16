@@ -153,10 +153,31 @@ public class CallHandler extends TextWebSocketHandler
         caller.sendMessage(response);
     }
 
+    private EventListener<IceCandidateFoundEvent> createFoundIceCandidateEventListenerForUser(final UserSession user)
+    {
+        return event -> {
+            final JsonObject response = new JsonObject();
+            response.addProperty("id", "iceCandidate");
+            response.add("candidate", JsonUtils.toJsonObject(event.getCandidate()));
+            try
+            {
+                synchronized (user.getSession())
+                {
+                    user.getSession().sendMessage(new TextMessage(response.toString()));
+                }
+            }
+            catch (final IOException e)
+            {
+                log.debug(e.getMessage());
+            }
+        };
+    }
+
     private void call(final UserSession caller, final JsonObject jsonMessage) throws IOException
     {
         final String to = jsonMessage.get("to").getAsString();
         final String from = jsonMessage.get("from").getAsString();
+        final boolean isVideoCall = jsonMessage.get("isVideoCall").getAsBoolean();
         final JsonObject response = new JsonObject();
 
         if (registry.exists(to))
@@ -166,6 +187,7 @@ public class CallHandler extends TextWebSocketHandler
 
             response.addProperty("id", "incomingCall");
             response.addProperty("from", from);
+            response.addProperty("isVideoCall", isVideoCall);
 
             final UserSession callee = registry.getByName(to);
             callee.sendMessage(response);
@@ -185,8 +207,8 @@ public class CallHandler extends TextWebSocketHandler
     {
         final String callResponse = jsonMessage.get("callResponse").getAsString();
         final String from = jsonMessage.get("from").getAsString();
-        final UserSession calleer = registry.getByName(from);
-        final String to = calleer.getCallingTo();
+        final UserSession caller = registry.getByName(from);
+        final String to = caller.getCallingTo();
 
         if ("accept".equals(callResponse))
         {
@@ -196,58 +218,16 @@ public class CallHandler extends TextWebSocketHandler
             try
             {
                 pipeline = new CallMediaPipeline(kurento);
-                pipelines.put(calleer.getSessionId(), pipeline);
+                pipelines.put(caller.getSessionId(), pipeline);
                 pipelines.put(callee.getSessionId(), pipeline);
 
                 callee.setWebRtcEndpoint(pipeline.getCalleeWebRtcEp());
                 pipeline.getCalleeWebRtcEp().addIceCandidateFoundListener(
-                        new EventListener<IceCandidateFoundEvent>()
-                        {
+                        createFoundIceCandidateEventListenerForUser(callee));
 
-                            @Override
-                            public void onEvent(final IceCandidateFoundEvent event)
-                            {
-                                final JsonObject response = new JsonObject();
-                                response.addProperty("id", "iceCandidate");
-                                response.add("candidate", JsonUtils.toJsonObject(event.getCandidate()));
-                                try
-                                {
-                                    synchronized (callee.getSession())
-                                    {
-                                        callee.getSession().sendMessage(new TextMessage(response.toString()));
-                                    }
-                                }
-                                catch (final IOException e)
-                                {
-                                    log.debug(e.getMessage());
-                                }
-                            }
-                        });
-
-                calleer.setWebRtcEndpoint(pipeline.getCallerWebRtcEp());
+                caller.setWebRtcEndpoint(pipeline.getCallerWebRtcEp());
                 pipeline.getCallerWebRtcEp().addIceCandidateFoundListener(
-                        new EventListener<IceCandidateFoundEvent>()
-                        {
-
-                            @Override
-                            public void onEvent(final IceCandidateFoundEvent event)
-                            {
-                                final JsonObject response = new JsonObject();
-                                response.addProperty("id", "iceCandidate");
-                                response.add("candidate", JsonUtils.toJsonObject(event.getCandidate()));
-                                try
-                                {
-                                    synchronized (calleer.getSession())
-                                    {
-                                        calleer.getSession().sendMessage(new TextMessage(response.toString()));
-                                    }
-                                }
-                                catch (final IOException e)
-                                {
-                                    log.debug(e.getMessage());
-                                }
-                            }
-                        });
+                        createFoundIceCandidateEventListenerForUser(caller));
 
                 final String calleeSdpOffer = jsonMessage.get("sdpOffer").getAsString();
                 final String calleeSdpAnswer = pipeline.generateSdpAnswerForCallee(calleeSdpOffer);
@@ -269,9 +249,9 @@ public class CallHandler extends TextWebSocketHandler
                 response.addProperty("response", "accepted");
                 response.addProperty("sdpAnswer", callerSdpAnswer);
 
-                synchronized (calleer)
+                synchronized (caller)
                 {
-                    calleer.sendMessage(response);
+                    caller.sendMessage(response);
                 }
 
                 pipeline.getCallerWebRtcEp().gatherCandidates();
@@ -286,13 +266,13 @@ public class CallHandler extends TextWebSocketHandler
                     pipeline.release();
                 }
 
-                pipelines.remove(calleer.getSessionId());
+                pipelines.remove(caller.getSessionId());
                 pipelines.remove(callee.getSessionId());
 
                 JsonObject response = new JsonObject();
                 response.addProperty("id", "callResponse");
                 response.addProperty("response", "rejected");
-                calleer.sendMessage(response);
+                caller.sendMessage(response);
 
                 response = new JsonObject();
                 response.addProperty("id", "stopCommunication");
@@ -305,7 +285,7 @@ public class CallHandler extends TextWebSocketHandler
             final JsonObject response = new JsonObject();
             response.addProperty("id", "callResponse");
             response.addProperty("response", "rejected");
-            calleer.sendMessage(response);
+            caller.sendMessage(response);
         }
     }
 
