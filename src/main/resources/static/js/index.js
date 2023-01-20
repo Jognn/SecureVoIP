@@ -30,7 +30,7 @@ const NOT_REGISTERED = 0;
 const REGISTERING = 1;
 const REGISTERED = 2;
 
-window.onload = function() {
+window.onload = () => {
 	console = new Console();
 	setRegisterState(NOT_REGISTERED);
 	let drag = new Draggabilly(document.getElementById('videoSmall'));
@@ -40,26 +40,27 @@ window.onload = function() {
 	navigator.getUserMedia({video:true, audio:false}, () => hasWebcam = true, () => hasWebcam = false);
 }
 
-window.onbeforeunload = function() {
+window.onbeforeunload = () => {
 	ws.close();
 }
 
 function setRegisterState(nextState)
 {
-	switch (nextState) {
-	case NOT_REGISTERED:
-		enableButton('#register', 'register()');
-		setCallState(NO_CALL);
-		break;
-	case REGISTERING:
-		disableButton('#register');
-		break;
-	case REGISTERED:
-		disableButton('#register');
-		setCallState(NO_CALL);
-		break;
-	default:
-		return;
+	switch (nextState)
+	{
+        case NOT_REGISTERED:
+            enableButton('#register', 'register()');
+            setCallState(NO_CALL);
+            break;
+        case REGISTERING:
+            disableButton('#register');
+            break;
+        case REGISTERED:
+            disableButton('#register');
+            setCallState(NO_CALL);
+            break;
+        default:
+            return;
 	}
 	registerState = nextState;
 }
@@ -71,24 +72,25 @@ const IN_CALL = 2;
 
 function setCallState(nextState)
 {
-	switch (nextState) {
-	case NO_CALL:
-		enableButton('#call', 'call()');
-		disableButton('#terminate');
-		disableButton('#play');
-		break;
-	case PROCESSING_CALL:
-		disableButton('#call');
-		disableButton('#terminate');
-		disableButton('#play');
-		break;
-	case IN_CALL:
-		disableButton('#call');
-		enableButton('#terminate', 'stop()');
-		disableButton('#play');
-		break;
-	default:
-		return;
+	switch (nextState)
+	{
+        case NO_CALL:
+            enableButton('#call', 'call()');
+            disableButton('#terminate');
+            disableButton('#play');
+            break;
+        case PROCESSING_CALL:
+            disableButton('#call');
+            disableButton('#terminate');
+            disableButton('#play');
+            break;
+        case IN_CALL:
+            disableButton('#call');
+            enableButton('#terminate', 'stop()');
+            disableButton('#play');
+            break;
+        default:
+            return;
 	}
 	callState = nextState;
 }
@@ -98,29 +100,30 @@ ws.onmessage = function(message)
 	let parsedMessage = JSON.parse(message.data);
 	console.info('Received message: ' + message.data);
 
-	switch (parsedMessage.id) {
-	case 'registerResponse':
-		registerResponse(parsedMessage);
-		break;
-	case 'callResponse':
-		callResponse(parsedMessage);
-		break;
-	case 'incomingCall':
-		incomingCall(parsedMessage);
-		break;
-	case 'startCommunication':
-		startCommunication(parsedMessage);
-		break;
-	case 'stopCommunication':
-		console.info('Communication ended by remote peer');
-		stop(true);
-		break;
-	case 'iceCandidate':
-		webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
-			if (error)
-				return console.error('Error adding candidate: ' + error);
-		});
-		break;
+	switch (parsedMessage.id)
+	{
+        case 'registerResponse':
+            registerResponse(parsedMessage);
+            break;
+        case 'callResponse':
+            callResponse(parsedMessage);
+            break;
+        case 'incomingCall':
+            incomingCall(parsedMessage);
+            break;
+        case 'startCommunication':
+            startCommunication(parsedMessage);
+            break;
+        case 'stopCommunication':
+            console.info('Communication ended by remote peer');
+            stop(true);
+            break;
+        case 'iceCandidate':
+            webRtcPeer.addIceCandidate(parsedMessage.candidate, (error) => {
+                if (error)
+                    return console.error('Error adding candidate: ' + error);
+            });
+            break;
 	default:
 		console.error('Unrecognized message', parsedMessage);
 	}
@@ -128,12 +131,14 @@ ws.onmessage = function(message)
 
 function registerResponse(message)
 {
-	if (message.response == 'accepted') {
+	if (message.response == 'accepted')
+	{
 		setRegisterState(REGISTERED);
-	} else {
+	}
+	else
+	{
 		setRegisterState(NOT_REGISTERED);
-		let errorMessage = message.message ? message.message
-				: 'Unknown reason for register rejection.';
+		let errorMessage = message.message ? message.message : 'Unknown reason for register rejection.';
 		console.log(errorMessage);
 		alert('Error registering user. See console for further information.');
 	}
@@ -142,26 +147,29 @@ function registerResponse(message)
 function callResponse(message)
 {
 	hideSpinner(videoInput, videoOutput)
-	if (message.response != 'accepted') {
+	if (message.response != 'accepted')
+	{
 		console.info('Call not accepted by peer. Closing call');
-		let errorMessage = message.message ? message.message
-				: 'Unknown reason for call rejection.';
+		let errorMessage = message.message ? message.message : 'Unknown reason for call rejection.';
 		console.log(errorMessage);
 		stop();
-	} else {
+	}
+	else
+	{
 		setCallState(IN_CALL);
-		webRtcPeer.processAnswer(message.sdpAnswer, function(error) {
+		webRtcPeer.processAnswer(message.sdpAnswer, (error) => {
 			if (error)
 				return console.error(error);
 		});
 	}
 }
 
-function startCommunication(message) {
+function startCommunication(message)
+{
 	hideSpinner(videoOutput)
 
 	setCallState(IN_CALL);
-	webRtcPeer.processAnswer(message.sdpAnswer, function(error) {
+	webRtcPeer.processAnswer(message.sdpAnswer, (error) => {
 		if (error)
 			return console.error(error);
 	});
@@ -170,8 +178,9 @@ function startCommunication(message) {
 function incomingCall(message)
 {
 	// If bussy just reject without disturbing user
-	if (callState != NO_CALL) {
-		let response = {
+	if (callState != NO_CALL)
+	{
+		const response = {
 			id : 'incomingCallResponse',
 			from : message.from,
 			callResponse : 'reject',
@@ -181,9 +190,9 @@ function incomingCall(message)
 	}
 
 	setCallState(PROCESSING_CALL);
-	if (confirm('User ' + message.from
-			+ ' is calling you. Do you accept the call?')) {
-		//showSpinner(videoInput, videoOutput);
+	if (confirm(`User ${message.from} is calling. Do you accept the call?`))
+	{
+		showSpinner(videoInput, videoOutput);
 
 		from = message.from;
 
@@ -199,13 +208,11 @@ function incomingCall(message)
 			onerror : onError
 		}
 
-		webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options,
-				function(error) {
-					if (error) {
-						return console.error(error);
-					}
-					webRtcPeer.generateOffer(onOfferIncomingCall);
-				});
+		webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, (error) => {
+            if (error)
+                return console.error(error);
+            webRtcPeer.generateOffer(onOfferIncomingCall);
+        });
 	}
 	else
 	{
@@ -221,7 +228,8 @@ function incomingCall(message)
 	hideSpinner(videoInput);
 }
 
-function onOfferIncomingCall(error, offerSdp) {
+function onOfferIncomingCall(error, offerSdp)
+{
 	if (error)
 		return console.error("Error generating the offer");
 	let response = {
@@ -251,7 +259,8 @@ function register()
 }
 
 function call() {
-	if (document.getElementById('peer').value == '') {
+	if (document.getElementById('peer').value == '')
+	{
 		window.alert('You must specify the peer name');
 		return;
 	}
@@ -295,7 +304,8 @@ function onOfferCall(error, offerSdp) {
 	sendMessage(message);
 }
 
-function stop(message) {
+function stop(message)
+{
 	setCallState(NO_CALL);
 	if (webRtcPeer) {
 		webRtcPeer.dispose();
@@ -311,11 +321,13 @@ function stop(message) {
 	hideSpinner(videoInput, videoOutput);
 }
 
-function onError() {
+function onError()
+{
 	setCallState(NO_CALL);
 }
 
-function onIceCandidate(candidate) {
+function onIceCandidate(candidate)
+{
 	console.log("Local candidate" + JSON.stringify(candidate));
 
 	let message = {
@@ -325,13 +337,15 @@ function onIceCandidate(candidate) {
 	sendMessage(message);
 }
 
-function sendMessage(message) {
+function sendMessage(message)
+{
 	let jsonMessage = JSON.stringify(message);
 	console.log('Sending message: ' + jsonMessage);
 	ws.send(jsonMessage);
 }
 
-function showSpinner() {
+function showSpinner()
+{
 	for (let i = 0; i < arguments.length; i++) {
 		arguments[i].poster = './img/transparent-1px.png';
 		arguments[i].style.background = 'center transparent url("./img/spinner.gif") no-repeat';
@@ -339,19 +353,22 @@ function showSpinner() {
 }
 
 function hideSpinner() {
-	for (let i = 0; i < arguments.length; i++) {
+	for (let i = 0; i < arguments.length; i++)
+	{
 		arguments[i].src = '';
 		arguments[i].poster = './img/webrtc.png';
 		arguments[i].style.background = '';
 	}
 }
 
-function disableButton(id) {
+function disableButton(id)
+{
 	$(id).attr('disabled', true);
 	$(id).removeAttr('onclick');
 }
 
-function enableButton(id, functionName) {
+function enableButton(id, functionName)
+{
 	$(id).attr('disabled', false);
 	$(id).attr('onclick', functionName);
 }
@@ -359,7 +376,7 @@ function enableButton(id, functionName) {
 /**
  * Lightbox utility (to display media pipeline image in a modal dialog)
  */
-$(document).delegate('*[data-toggle="lightbox"]', 'click', function(event) {
+$(document).delegate('*[data-toggle="lightbox"]', 'click', (event) => {
 	event.preventDefault();
 	$(this).ekkoLightbox();
 });
