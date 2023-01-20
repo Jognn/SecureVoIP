@@ -15,7 +15,7 @@
  *
  */
 
-package org.kurento.tutorial.one2onecall;
+package org.securevoip;
 
 import org.kurento.client.KurentoClient;
 import org.springframework.boot.SpringApplication;
@@ -27,15 +27,11 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 
 /**
- * Video call 1 to 1 demo (main).
- *
- * @author Boni Garcia (bgarcia@gsyc.es)
- * @author Micael Gallego (micael.gallego@gmail.com)
- * @since 4.3.1
+ * Application class
  */
 @SpringBootApplication
 @EnableWebSocket
-public class One2OneCallApp implements WebSocketConfigurer
+public class SecureVoipApp implements WebSocketConfigurer
 {
 
     @Bean
@@ -72,6 +68,6 @@ public class One2OneCallApp implements WebSocketConfigurer
 
     public static void main(final String[] args)
     {
-        SpringApplication.run(One2OneCallApp.class, args);
+        SpringApplication.run(SecureVoipApp.class, args);
     }
 }

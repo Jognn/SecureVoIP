@@ -15,7 +15,7 @@
  *
  */
 
-package org.kurento.tutorial.one2onecall;
+package org.securevoip;
 
 import org.kurento.client.KurentoClient;
 import org.kurento.client.MediaPipeline;
@@ -24,10 +24,6 @@ import org.kurento.client.WebRtcEndpoint;
 /**
  * Media Pipeline (WebRTC endpoints, i.e. Kurento Media Elements) and connections for the 1 to 1
  * video communication.
- *
- * @author Boni Garcia (bgarcia@gsyc.es)
- * @author Micael Gallego (micael.gallego@gmail.com)
- * @since 4.3.1
  */
 public class CallMediaPipeline
 {

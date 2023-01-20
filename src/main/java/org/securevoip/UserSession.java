@@ -15,7 +15,7 @@
  *
  */
 
-package org.kurento.tutorial.one2onecall;
+package org.securevoip;
 
 import com.google.gson.JsonObject;
 import org.kurento.client.IceCandidate;
@@ -31,10 +31,6 @@ import java.util.List;
 
 /**
  * User session.
- *
- * @author Boni Garcia (bgarcia@gsyc.es)
- * @author Micael Gallego (micael.gallego@gmail.com)
- * @since 4.3.1
  */
 public class UserSession
 {

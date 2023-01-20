@@ -15,7 +15,7 @@
  *
  */
 
-package org.kurento.tutorial.one2onecall;
+package org.securevoip;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -38,10 +38,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Protocol handler for 1 to 1 video call communication.
- *
- * @author Boni Garcia (bgarcia@gsyc.es)
- * @author Micael Gallego (micael.gallego@gmail.com)
- * @since 4.3.1
  */
 public class CallHandler extends TextWebSocketHandler
 {
