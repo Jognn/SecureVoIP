@@ -77,3 +77,17 @@ div.dragged {
 	border-color: blue !important;
 	z-index: 10 !important;
 }
+
+.not-usable-button {
+     background-color: gray !important;
+     border-color: gray !important;
+}
+
+.not-usable-input{
+     background-color: lightgray !important;
+     border-color: lightgray !important;
+     outline: none !important;
+     border: none !important;
+     -webkit-box-shadow: none !important;
+     box-shadow: none !important;
+}

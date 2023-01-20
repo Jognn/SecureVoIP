@@ -93,7 +93,7 @@ public class UserSession
 
     public void sendMessage(final JsonObject message) throws IOException
     {
-        log.debug("Sending message from user '{}': {}", name, message);
+        log.debug("Sending message to user '{}': {}", name, message);
         session.sendMessage(new TextMessage(message.toString()));
     }
 

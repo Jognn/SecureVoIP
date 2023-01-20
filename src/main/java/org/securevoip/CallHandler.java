@@ -64,7 +64,7 @@ public class CallHandler extends TextWebSocketHandler
         }
         else
         {
-            log.debug("Incoming message from new user: {}", jsonMessage);
+            log.debug("Incoming message from a new user: {}", jsonMessage);
         }
 
         switch (jsonMessage.get("id").getAsString())
@@ -192,7 +192,7 @@ public class CallHandler extends TextWebSocketHandler
         else
         {
             response.addProperty("id", "callResponse");
-            response.addProperty("response", "rejected: user '" + to + "' is not registered");
+            response.addProperty("response", "Rejected: user '" + to + "' is not registered");
 
             caller.sendMessage(response);
         }

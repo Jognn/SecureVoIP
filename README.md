@@ -3,7 +3,7 @@ SecureVoIP
 
 About
 -------------------------
-One to one VoIP communication platform with video streaming.
+One to one VoIP Kurento based communication platform with video streaming.
 
 Authors
 -------------------------
@@ -17,4 +17,5 @@ Copyright © 2013-2016 [Kurento]. Licensed under [Apache 2.0 License].
 
 
 [Apache 2.0 License]: http://www.apache.org/licenses/LICENSE-2.0
+
 [Kurento]: http://kurento.org
