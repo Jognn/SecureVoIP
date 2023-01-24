@@ -5,6 +5,13 @@ About
 -------------------------
 One to one Kurento based VoIP communication platform with video streaming.
 
+
+How to start
+------------------------
+1) Run the media server via `docker compose up`
+2) Start the application server `mvn -U clean spring-boot:run`
+3) Go to *https://localhost:8443*
+
 Authors
 -------------------------
 
