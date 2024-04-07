@@ -12,12 +12,6 @@ How to start
 2) Start the application server `mvn -U clean spring-boot:run`
 3) Go to *https://localhost:8443*
 
-Authors
--------------------------
-
-- Jan Zobniów [@Jognn](https://github.com/Jognn)
-- Mateusz Izbicki [@maizyy](https://github.com/maizyy)
-
 License
 ------------------------
 Copyright © 2013-2016 [Kurento]. Licensed under [Apache 2.0 License].
